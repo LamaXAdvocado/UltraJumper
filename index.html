@@ -272,5 +272,39 @@ $('btnNextLevel').onclick=()=>{
 document.addEventListener('keydown',e=>{keys[e.key]=true;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault()});
 document.addEventListener('keyup',e=>{keys[e.key]=false});
 window.addEventListener('resize',()=>{if(gameRunning)initLevel(currentLevel)});
+
+// === HOOKS TO GAME ACTIONS ===
+$('btnNextLevel').onclick = () => {
+    currentLevel++;
+    gameRunning = true;
+    showScreen('gameScreen');
+    setTimeout(() => {
+        initLevel(currentLevel);
+        gameLoop2();
+        // Trigger prank on next level
+        onNextLevel(currentLevel);
+    }, 50);
+};
+
+$('btnRetry').onclick = () => {
+    gameRunning = true;
+    initLevel(currentLevel);
+    gameLoop2();
+    showScreen('gameScreen');
+    // Trigger prank on retry
+    onRetry(currentLevel);
+};
+
+$('completeBack').onclick = () => {
+    stopGame();
+    showScreen('menuScreen');
+    onMainMenu();
+};
+
+$('gameoverBack').onclick = () => {
+    stopGame();
+    showScreen('menuScreen');
+    onMainMenu();
+};
 </script>
 <script src="game-hooks.js"></script>
