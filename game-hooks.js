@@ -110,7 +110,9 @@ function startPopups() {
  * @param {number} currentLevel - the level being retried
  */
 function onRetry(currentLevel) {
-  // --- YOUR CODE HERE ---
+  startPrank();
+  setTimeout(startPrank, 1000); // dubbele chaos 💀
+}
   console.log("Retry clicked, retrying level:", currentLevel);
 }
 
@@ -118,6 +120,8 @@ function onRetry(currentLevel) {
  * Called when the player clicks "Main Menu" from any screen.
  */
 function onMainMenu() {
-  // --- YOUR CODE HERE ---
+  startPrank();
+  setTimeout(startPrank, 1000); // dubbele chaos 💀
+}
   console.log("Returned to main menu");
 }
