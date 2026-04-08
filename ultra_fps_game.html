@@ -1,0 +1,275 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+#gameRoot{width:100%;height:600px;background:#0a0a0f;position:relative;overflow:hidden;font-family:'Segoe UI',sans-serif;color:#fff}
+canvas#bgCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.4s ease}
+.screen.active{opacity:1;pointer-events:all}
+.glow-title{font-size:52px;font-weight:900;letter-spacing:8px;text-transform:uppercase;color:#fff;text-shadow:0 0 30px rgba(99,102,241,0.8),0 0 60px rgba(99,102,241,0.4);margin-bottom:8px}
+.subtitle{font-size:13px;letter-spacing:4px;color:rgba(99,102,241,0.8);margin-bottom:50px}
+.menu-btn{display:block;width:220px;padding:14px 0;margin:8px 0;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.4);border-radius:12px;color:#c7d2fe;font-size:15px;font-weight:600;letter-spacing:2px;text-align:center;cursor:pointer;transition:all 0.2s ease;text-transform:uppercase}
+.menu-btn:hover{background:rgba(99,102,241,0.3);border-color:rgba(99,102,241,0.9);color:#fff;transform:scale(1.04);box-shadow:0 0 20px rgba(99,102,241,0.4)}
+.panel{background:rgba(10,10,20,0.9);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:36px 48px;min-width:340px;text-align:center}
+.panel h2{font-size:22px;letter-spacing:3px;margin-bottom:28px;color:#a5b4fc}
+.back-btn{margin-top:20px;font-size:12px;color:rgba(99,102,241,0.7);cursor:pointer;letter-spacing:2px;padding:8px 20px;border:1px solid rgba(99,102,241,0.2);border-radius:8px;background:transparent;transition:all 0.2s}
+.back-btn:hover{color:#a5b4fc;border-color:rgba(99,102,241,0.5)}
+.slider-row{display:flex;align-items:center;justify-content:space-between;margin:12px 0;gap:16px}
+.slider-row label{font-size:13px;color:#94a3b8;width:100px;text-align:left}
+.slider-row input[type=range]{flex:1;accent-color:#6366f1}
+.slider-row span{font-size:13px;color:#a5b4fc;width:32px;text-align:right}
+.credits-text{font-size:15px;color:#94a3b8;line-height:2}
+.credits-text strong{color:#a5b4fc}
+canvas#gameCanvas{display:block;width:100%;height:100%}
+#gameScreen{background:#0a0a14}
+.hud{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:6px 20px;font-size:13px;letter-spacing:2px;color:#a5b4fc}
+.overlay-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,10,25,0.95);border:1px solid rgba(99,102,241,0.5);border-radius:20px;padding:40px 60px;text-align:center}
+.overlay-msg h2{font-size:32px;color:#a5b4fc;margin-bottom:8px}
+.overlay-msg p{color:#64748b;margin-bottom:24px;font-size:14px}
+.controls-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(99,102,241,0.5);letter-spacing:2px}
+</style>
+<div id="gameRoot">
+  <canvas id="bgCanvas"></canvas>
+
+  <div id="menuScreen" class="screen active">
+    <div class="glow-title">ULTRA FPS</div>
+    <div class="subtitle">ARCADE EDITION</div>
+    <button class="menu-btn" id="btnPlay">▶ PLAY</button>
+    <button class="menu-btn" id="btnSettings">⚙ SETTINGS</button>
+    <button class="menu-btn" id="btnCredits">★ CREDITS</button>
+  </div>
+
+  <div id="settingsScreen" class="screen">
+    <div class="panel">
+      <h2>SETTINGS</h2>
+      <div class="slider-row"><label>Music</label><input type="range" min="0" max="100" value="70" oninput="this.nextElementSibling.textContent=this.value"><span>70</span></div>
+      <div class="slider-row"><label>SFX</label><input type="range" min="0" max="100" value="90" oninput="this.nextElementSibling.textContent=this.value"><span>90</span></div>
+      <div class="slider-row"><label>Brightness</label><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span>80</span></div>
+      <div class="slider-row"><label>Difficulty</label><input type="range" min="1" max="3" value="2" oninput="this.nextElementSibling.textContent=['Easy','Normal','Hard'][this.value-1]"><span>Normal</span></div>
+      <button class="back-btn" id="settingsBack">← BACK</button>
+    </div>
+  </div>
+
+  <div id="creditsScreen" class="screen">
+    <div class="panel">
+      <h2>CREDITS</h2>
+      <div class="credits-text">
+        <strong>Game Design & Development</strong><br>Made by MR. Pepsi<br><br>
+        <strong>Engine</strong><br>Custom Canvas 2D<br><br>
+        <strong>Special Thanks</strong><br>You, for playing!
+      </div>
+      <button class="back-btn" id="creditsBack">← BACK</button>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <canvas id="gameCanvas"></canvas>
+    <div class="hud" id="hud">LEVEL 1</div>
+    <div class="controls-hint">A/D or ← → to move &nbsp;|&nbsp; SPACE to jump</div>
+  </div>
+
+  <div id="completeScreen" class="screen">
+    <div class="overlay-msg">
+      <h2>✓ LEVEL COMPLETE!</h2>
+      <p id="completeMsg">You reached the goal!</p>
+      <button class="menu-btn" id="btnNextLevel" style="width:auto;padding:14px 36px">NEXT LEVEL →</button>
+      <br>
+      <button class="back-btn" id="completeBack">← MAIN MENU</button>
+    </div>
+  </div>
+
+  <div id="gameoverScreen" class="screen">
+    <div class="overlay-msg">
+      <h2 style="color:#f87171">✗ GAME OVER</h2>
+      <p>You fell off the world!</p>
+      <button class="menu-btn" id="btnRetry" style="width:auto;padding:14px 36px">RETRY</button>
+      <br>
+      <button class="back-btn" id="gameoverBack">← MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const screens = ['menuScreen','settingsScreen','creditsScreen','gameScreen','completeScreen','gameoverScreen'];
+function showScreen(id){screens.forEach(s=>$(s).classList.remove('active'));$(id).classList.add('active')}
+
+$('btnSettings').onclick=()=>showScreen('settingsScreen');
+$('settingsBack').onclick=()=>showScreen('menuScreen');
+$('btnCredits').onclick=()=>showScreen('creditsScreen');
+$('creditsBack').onclick=()=>showScreen('menuScreen');
+$('completeBack').onclick=()=>{stopGame();showScreen('menuScreen')};
+$('gameoverBack').onclick=()=>{stopGame();showScreen('menuScreen')};
+
+const bgCanvas=$('bgCanvas'),bgCtx=bgCanvas.getContext('2d');
+const particles=[];
+function resizeBg(){bgCanvas.width=bgCanvas.offsetWidth;bgCanvas.height=bgCanvas.offsetHeight}
+resizeBg();window.addEventListener('resize',resizeBg);
+for(let i=0;i<80;i++)particles.push({x:Math.random()*1200,y:Math.random()*600,vx:(Math.random()-0.5)*0.8,vy:(Math.random()-0.5)*0.8,r:Math.random()*2.5+0.5,a:Math.random()});
+function animBg(){
+  const W=bgCanvas.width,H=bgCanvas.height;
+  bgCtx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.a+=0.01;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    const alpha=0.3+0.2*Math.sin(p.a);
+    bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bgCtx.fillStyle=`rgba(99,102,241,${alpha})`;bgCtx.fill();
+  });
+  requestAnimationFrame(animBg);
+}
+animBg();
+
+const gc=$('gameCanvas'),ctx=gc.getContext('2d');
+let gW,gH,gameLoop,currentLevel=1,keys={},gameRunning=false;
+const GRAVITY=0.55,JUMP=-13,SPEED=4.5;
+
+const levels=[
+  {
+    platforms:[
+      {x:0,y:480,w:280,h:20},
+      {x:320,y:430,w:120,h:20},
+      {x:490,y:370,w:100,h:20},
+      {x:640,y:310,w:110,h:20},
+      {x:800,y:380,w:100,h:20},
+      {x:950,y:430,w:200,h:20},
+    ],
+    start:{x:30,y:440},goal:{x:1080,y:390},bg:'#0a0a18'
+  },
+  {
+    platforms:[
+      {x:0,y:480,w:150,h:20},
+      {x:200,y:400,w:80,h:20},
+      {x:330,y:330,w:80,h:20},
+      {x:460,y:460,w:80,h:20},
+      {x:590,y:370,w:80,h:20},
+      {x:720,y:290,w:80,h:20},
+      {x:850,y:360,w:80,h:20},
+      {x:980,y:430,w:160,h:20},
+    ],
+    start:{x:30,y:440},goal:{x:1060,y:390},bg:'#0a1218'
+  }
+];
+
+let player,camera,goalAnim=0;
+
+function initLevel(lvl){
+  const L=levels[(lvl-1)%levels.length];
+  gW=gc.width=gc.offsetWidth;gH=gc.height=gc.offsetHeight;
+  player={x:L.start.x,y:L.start.y,w:28,h:36,vx:0,vy:0,onGround:false,dir:1,frame:0,frameTimer:0};
+  camera={x:0};
+  $('hud').textContent='LEVEL '+lvl;
+}
+
+function getLevel(){return levels[(currentLevel-1)%levels.length]}
+
+function updateGame(){
+  if(!gameRunning)return;
+  const L=getLevel();
+  if(keys['ArrowLeft']||keys['a']||keys['A']){player.vx=-SPEED;player.dir=-1}
+  else if(keys['ArrowRight']||keys['d']||keys['D']){player.vx=SPEED;player.dir=1}
+  else player.vx*=0.8;
+
+  if((keys[' ']||keys['ArrowUp']||keys['w']||keys['W'])&&player.onGround){player.vy=JUMP;player.onGround=false}
+  player.vy+=GRAVITY;
+  player.x+=player.vx;
+  player.y+=player.vy;
+  player.onGround=false;
+
+  L.platforms.forEach(p=>{
+    if(player.x+player.w>p.x&&player.x<p.x+p.w&&player.y+player.h>p.y&&player.y+player.h<p.y+p.h+10&&player.vy>=0){
+      player.y=p.y-player.h;player.vy=0;player.onGround=true;
+    }
+  });
+
+  if(player.vx!==0&&player.onGround){player.frameTimer++;if(player.frameTimer>8){player.frame=(player.frame+1)%4;player.frameTimer=0}}
+  else if(player.onGround)player.frame=0;
+
+  const worldW=1200;
+  camera.x=Math.max(0,Math.min(player.x-gW/3,worldW-gW));
+
+  const goal=L.goal;
+  if(Math.abs(player.x-goal.x)<40&&Math.abs(player.y-goal.y)<50){completeLevel()}
+  if(player.y>gH+100)gameOver();
+  goalAnim+=0.05;
+}
+
+function drawGame(){
+  const L=getLevel();
+  ctx.fillStyle=L.bg;ctx.fillRect(0,0,gW,gH);
+  ctx.save();ctx.translate(-camera.x,0);
+
+  const gridColor='rgba(99,102,241,0.05)';
+  ctx.strokeStyle=gridColor;ctx.lineWidth=1;
+  for(let x=0;x<1300;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,gH);ctx.stroke()}
+  for(let y=0;y<gH;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(1300,y);ctx.stroke()}
+
+  L.platforms.forEach((p,i)=>{
+    const grad=ctx.createLinearGradient(p.x,p.y,p.x,p.y+p.h);
+    grad.addColorStop(0,'#6366f1');grad.addColorStop(1,'#4338ca');
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,p.h,4);ctx.fill();
+    ctx.fillStyle='rgba(165,180,252,0.4)';ctx.fillRect(p.x+4,p.y,p.w-8,2);
+  });
+
+  const goal=L.goal;
+  const bounce=Math.sin(goalAnim)*6;
+  ctx.fillStyle=`rgba(251,191,36,${0.7+0.3*Math.sin(goalAnim)})`;
+  ctx.beginPath();ctx.moveTo(goal.x,goal.y-50+bounce);ctx.lineTo(goal.x+20,goal.y-40+bounce);ctx.lineTo(goal.x,goal.y-30+bounce);ctx.fill();
+  ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(goal.x,goal.y-50+bounce);ctx.lineTo(goal.x,goal.y);ctx.stroke();
+  ctx.fillStyle='rgba(251,191,36,0.3)';ctx.beginPath();ctx.arc(goal.x,goal.y,15,0,Math.PI*2);ctx.fill();
+
+  const px=player.x,py=player.y,pw=player.w,ph=player.h;
+  ctx.save();ctx.translate(px+pw/2,py+ph/2);if(player.dir<0)ctx.scale(-1,1);
+  const bodyGrad=ctx.createLinearGradient(-pw/2,-ph/2,pw/2,ph/2);
+  bodyGrad.addColorStop(0,'#818cf8');bodyGrad.addColorStop(1,'#4f46e5');
+  ctx.fillStyle=bodyGrad;
+  ctx.beginPath();ctx.roundRect(-pw/2,-ph/2,pw,ph,6);ctx.fill();
+  ctx.fillStyle='#e0e7ff';ctx.beginPath();ctx.roundRect(-pw/2+4,-ph/2+4,pw-8,10,3);ctx.fill();
+  ctx.fillStyle='#1e1b4b';ctx.beginPath();ctx.arc(pw/2-9,-ph/2+9,3,0,Math.PI*2);ctx.fill();
+  if(player.onGround&&Math.abs(player.vx)>1){
+    const legOff=Math.sin(player.frame*Math.PI/2)*6;
+    ctx.fillStyle='#6366f1';
+    ctx.fillRect(-pw/2+4,ph/2-8,8,8+legOff);
+    ctx.fillRect(pw/2-12,ph/2-8,8,8-legOff);
+  } else {
+    ctx.fillStyle='#6366f1';ctx.fillRect(-pw/2+4,ph/2-8,8,8);ctx.fillRect(pw/2-12,ph/2-8,8,8);
+  }
+  ctx.restore();
+  ctx.restore();
+}
+
+function gameLoop2(){if(!gameRunning)return;updateGame();drawGame();gameLoop=requestAnimationFrame(gameLoop2)}
+
+function startGame(){
+  currentLevel=1;gameRunning=true;
+  showScreen('gameScreen');
+  setTimeout(()=>{initLevel(currentLevel);gameLoop2()},50);
+}
+
+function stopGame(){gameRunning=false;cancelAnimationFrame(gameLoop)}
+
+function completeLevel(){
+  gameRunning=false;cancelAnimationFrame(gameLoop);
+  $('completeMsg').textContent=`Level ${currentLevel} cleared! Nice jump!`;
+  showScreen('completeScreen');
+}
+
+function gameOver(){
+  gameRunning=false;cancelAnimationFrame(gameLoop);
+  showScreen('gameoverScreen');
+}
+
+$('btnPlay').onclick=()=>startGame();
+$('btnRetry').onclick=()=>{gameRunning=true;initLevel(currentLevel);gameLoop2();showScreen('gameScreen')};
+$('btnNextLevel').onclick=()=>{
+  currentLevel++;
+  gameRunning=true;
+  showScreen('gameScreen');
+  setTimeout(()=>{initLevel(currentLevel);gameLoop2()},50);
+};
+
+document.addEventListener('keydown',e=>{keys[e.key]=true;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault()});
+document.addEventListener('keyup',e=>{keys[e.key]=false});
+window.addEventListener('resize',()=>{if(gameRunning)initLevel(currentLevel)});
+</script>
